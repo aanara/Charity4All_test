@@ -1,6 +1,10 @@
+
 <!DOCTYPE html>
+
 <html>
+
 <head>
+
   <!DOCTYPE html>
   <html lang="en">
   <head>
@@ -20,12 +24,15 @@
   border-radius: 0;
   color: #FFFFFF;
   background-color: #092F55  ;
-}
+  }
 
   </style>
-</head>
-<title>HTML Tutorial</title>
-<body>
+
+  </head>
+
+  <title>HTML Tutorial</title>
+
+  <body>
 
   <nav class="navbar navbar-inverse">
   <div class="container-fluid">
@@ -39,42 +46,94 @@
     </div>
     <div class="collapse navbar-collapse" id="myNavbar">
       <ul class="nav navbar-nav">
-        <li><a href="Home.html"><font color="white">Home</font></a></li>
-        <li><a href="blank.html"><font color="white">About Us</font></a></li>
+        <li class="active"><a href="#"><font color="white">Home</font></a></li>
+        <li><a href="aboutme.html"><font color="white">About Us</font></a></li>
         <li><a href="PhotoGallery.html"><font color="white">The Problem</font></a></li>
-        <li class="active"><a href="#"><font color="white">Donate Now!</font></a></li>
+        <li><a href="blank.html"><font color="white">Donate Now!</font></a></li>
         <li><a href="blank.html"><font color="white">Stories</font></a></li>
       </ul>
     </div>
-  </div>
-</nav>
+      </div>
+  </nav>
 
-<h1>This is a heading</h1>
+      <br>
 
-<div class="container">
-  <div class="panel panel-default">
-    <div class="panel-body">Step 1: Location</div>
-  </div>
+  <div class="container">
+    <div class="panel panel-default">
+      <div class="panel-body">Step 1: Location</div>
+    </div>
 
-  <b> Would you like us to detect your current location? </b>
+    <b> Would you like us to detect your current location? </b>
+    <span class="glyphicon glyphicon-ok-circle" role="button" aria-hidden="true"></span>
 
+    <form>
+      Else, please enter the zipcode here:
+      <input type="text" name="zipcode"><br>
+      <input type="submit" value="Submit">
+      <input type="reset">
+    </form>
 
-  <div class="btn-group" data-toggle="buttons">
-    <label class="btn btn-primary active">
-      <input type="radio" name="options" id="option1" autocomplete="off" checked> Would you like us to detect your current location?
-    </label>
-    <label class="btn btn-primary">
-      <input type="radio" name="options" id="option2" autocomplete="off"> yes
-    </label>
-    <label class="btn btn-primary">
-      <input type="radio" name="options" id="option3" autocomplete="off"> no
-    </label>
+    <img src="http://www.islands.com/sites/islands.com/files/styles/large_1x_/public/images/2016/02/poipu_beach_kauai.jpg" alt="Beach" style="width:30%;"align="right"; color: white;>
   </div>
 
+  <div class = "container">
+    <div class = "panel panel-default">
+      <div class = "panel-body">Step 2: Distance</div>
+    </div>
+
+    <b> How far are you willing to travel? </b>
+
+    <input type="range" min="0" max="50" value="0" step="5" onchange="showValue(this.value)" />
+    <span id="range">0</span>
+    <script type="text/javascript">
+    function showValue(newValue)
+    {
+	     document.getElementById("range").innerHTML=newValue;
+    }
+    </script>
+
+  </div>
 
 
+  <div class = "container">
+    <div class = "panel panel-default">
+        <div class = "panel-body"> Step 3: Select Your Item Below </div>
 
-</div>
+    </div>
+
+    <!-- Single button -->
+    <div class="btn-group">
+      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Select <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu">
+        <li><a href="#">clothes</a></li>
+        <li><a href="#">toys</a></li>
+        <li><a href="#">menstruation products</a></li>
+        <li role="separator" class="divider"></li>
+        <li><a href="#">other</a></li>
+      </ul>
+    </div>
+  </div>
+
+
+    <div class = "container">
+      <div class = "panel panel-default">
+        <div class = "panel-body"> Step 4: What Group Are You Targetting? </div>
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Select <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="#">women</a></li>
+          <li><a href="#">children</a></li>
+          <li><a href="#">men</a></li>
+          <li><a href="#">homeless people</a></li>
+          <li role="separator" class="divider"></li>
+          <li><a href="#">other</a></li>
+        </ul>
+      </div>
 
 
 
