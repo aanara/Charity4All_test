@@ -20,7 +20,13 @@
   </head>
 
   <style>
-
+  body{
+    font-family: 'Amatic SC';
+  }
+  .glyphicon {
+    font-size: 45px;
+  }
+		  
  .navbar {
   font-family: 'Amatic SC';
   font-size: 22px;
@@ -63,14 +69,14 @@
 
   <div class="container">
     <div class="panel panel-default">
-      <div class="panel-body">Step 1: Location</div>
+      <div class="panel-body"><font size = "25">Step 1: Location</font></div>
     </div>
 
-    <b> Would you like us to detect your current location? </b>
+    <b> <font size = "20">Would you like us to detect your current location? </font></b>
     <span class="glyphicon glyphicon-ok-circle" role="button" aria-hidden="true"></span>
 
     <form>
-      Else, please enter the zipcode here:
+      <font size = "20">Else, please enter the zipcode here:</font>
       <input type="text" name="zipcode"><br>
       <input type="submit" value="Submit">
       <input type="reset">
@@ -81,10 +87,10 @@
 
   <div class = "container">
     <div class = "panel panel-default">
-      <div class = "panel-body">Step 2: Distance</div>
+      <div class = "panel-body"><font size = "25">Step 2: Distance</font></div>
     </div>
 
-    <b> How far are you willing to travel? </b>
+    <b> <font size = "20"> How far are you willing to travel? </font></b>
 
     <input type="range" min="0" max="50" value="0" step="5" onchange="showValue(this.value)" />
     <span id="range">0</span>
@@ -100,7 +106,7 @@
 
   <div class = "container">
     <div class = "panel panel-default">
-        <div class = "panel-body"> Step 3: Select Your Item Below </div>
+        <div class = "panel-body"> <font size = "25" >Step 3: Select Your Item Below </font></div>
 
     </div>
 
@@ -151,3 +157,4 @@
 
 </body>
 </html>
+
