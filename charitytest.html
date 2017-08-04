@@ -1,0 +1,338 @@
+<html>
+<head>
+<style type="text/css">.gm-style .gm-style-mtc label,.gm-style .gm-style-mtc div{font-weight:400}
+</style><link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+<style type="text/css">.gm-style .gm-style-cc span,.gm-style .gm-style-cc a,.gm-style .gm-style-mtc div{font-size:10px}
+</style><style type="text/css">@media print {  .gm-style .gmnoprint, .gmnoprint {    display:none  }}@media screen {  .gm-style .gmnoscreen, .gmnoscreen {    display:none  }}
+</style>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+<style type="text/css">
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#map_canvas {
+  height: 100%;
+//  width: 80%;
+}
+
+#side_bar {
+  height: 100%;
+  width: 300px;
+  overflow: auto;
+}
+
+@media print {
+  html, body {
+    height: auto;
+  }
+
+  #map_canvas {
+    height: 650px;
+  }
+}
+</style>
+    <title>Google Maps JavaScript API v3 Example: SearchBox</title>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3&amp;sensor=false&amp;libraries=places,geometry"></script>
+    <script>
+var map = null;
+var gmarkers = [];
+var destMarkers = [];
+var service = null;
+var noAutoComplete = true;
+var noQuery = true;
+var initialService = null;
+var geocoder = new google.maps.Geocoder();
+var infowindow = new google.maps.InfoWindow({size: new google.maps.Size(150,50)});
+    var startLoc = new google.maps.LatLng(37.7749, -122.4194); // SF
+    var circle = new google.maps.Circle({
+        center:startLoc,
+        radius:10*1609.34, // 10 miles
+        strokeWeight: 2,
+        strokeColor: "black",
+	strokeOpacity: 0.9,
+        fillColor: "red",
+        fillOpacity: 0.15,
+	clickable: false,
+        map: map
+     });
+
+function callback(results, status) {
+  if (status == google.maps.places.PlacesServiceStatus.OK) {
+  var places = [];
+  for (var i = 0; i < gmarkers.length; i++) {
+    gmarkers[i].setMap(null);
+  }
+  gmarkers = [];
+
+  document.getElementById('side_bar').innerHTML ="<h5>found "+results.length+" places</h5>";
+  for (var i = 0; i < results.length; i++) {
+    var place = results[i];
+    places.push(place);
+    createMarker(results[i]);
+  }
+
+  map.fitBounds(circle.getBounds());
+  // if (markers.length == 1) map.setZoom(17);
+  var destArray = [];
+  destMarkers = [];
+
+  for (var i=0; i<gmarkers.length;i++){
+    if (google.maps.geometry.spherical.computeDistanceBetween(startLoc, gmarkers[i].getPosition()) < 10 * 1609.34) { // 1609.34 meters/mile
+       destArray.push(gmarkers[i].getPosition());
+       destMarkers.push(gmarkers[i]);
+    }
+  }
+
+  document.getElementById('info').innerHTML ="found "+destArray.length+" places within 10 miles<br>";
+  var DistanceMatrixService = new google.maps.DistanceMatrixService();
+  DistanceMatrixService.getDistanceMatrix(
+    {
+      origins: [startLoc],
+      destinations: destArray,
+      travelMode: google.maps.TravelMode.DRIVING,
+      unitSystem: google.maps.UnitSystem.IMPERIAL,
+      avoidHighways: false,
+      avoidTolls: false,
+    }, function (response, status) {
+       var distancefield = distancefield;
+         if (status == google.maps.DistanceMatrixStatus.OK) {
+           var origins = response.originAddresses;
+           var destinations = response.destinationAddresses;
+           var results = response.rows[0].elements;
+           var htmlString = "<table border='1'>";
+	   var within10min = 0;
+           for (var r = 0; r < results.length; r++) {
+               var element = results[r];
+               var distancetext = element.distance.text;
+               var durationtext = element.duration.text;
+               var to = destinations[r];
+		if (element.duration.value <= 10 * 60) {
+                 htmlString += "<tr><td>"+response.originAddresses[0]+"</td><td>" +
+                 "<a href='javascript:google.maps.event.trigger(destMarkers["+r+"],\"click\");'>"+to+"</a></td><td>"+distancetext+"</td><td>"+durationtext+"</td></tr>";
+		 within10min++;
+               }
+            }//end for r
+           htmlString += "</table>";
+           document.getElementById('info').innerHTML +="found "+within10min+" within 10 minute drive<br>";
+
+           document.getElementById('info').innerHTML += htmlString;
+         }//end if status=ok
+       })//end callback
+
+  }
+}
+
+function initialize() {
+  document.getElementById('target').value = "Charity";
+  var pyrmont = new google.maps.LatLng(-33.8665433,151.1956316);
+  var request = {
+    bounds: new google.maps.LatLngBounds(
+    new google.maps.LatLng(40.0, -74.0),
+    new google.maps.LatLng(42.0, -73.0)),
+    query: "Charity"
+  };
+
+      // If there are any parameters at eh end of the URL, they will be in  location.search
+      // looking something like  "?marker=3"
+
+      // skip the first character, we are not interested in the "?"
+      var query = location.search.substring(1);
+
+      // split the rest at each "&" character to give a list of  "argname=value"  pairs
+      var pairs = query.split("&");
+      for (var i=0; i<pairs.length; i++) {
+        // break each pair at the first "=" to obtain the argname and value
+	var pos = pairs[i].indexOf("=");
+	var argname = pairs[i].substring(0,pos).toLowerCase();
+        switch(argname) {
+         case "q":
+         case "address":
+	  var value = pairs[i].substring(pos+1);
+          break;
+         default:
+	  var value = pairs[i].substring(pos+1).toLowerCase();
+          break;
+        }
+
+        // process each possible argname  -  use unescape() if theres any chance of spaces
+        if (argname == "q") {
+           noAutoComplete = true;
+           document.getElementById('target').value = unescape(value);
+           request = {
+             bounds: circle.getBounds(), // new google.maps.LatLngBounds(new google.maps.LatLng(1.1548,103.571), new google.maps.LatLng(1.567,104.12)),
+
+             query: unescape(value)
+           };
+           noQuery = false;
+        }
+        if (argname == "lat") {lat = parseFloat(value);}
+        if (argname == "lng") {lng = parseFloat(value);}
+        if (argname == "zoom") {
+	  zoom = parseInt(value);
+	  myGeoXml3Zoom = false;
+	}
+        if (argname == "address") {address = unescape(value);
+          document.getElementById('address').value = address;
+          codeAddress();
+        }
+        if (argname == "type") {
+// from the v3 documentation 8/24/2010
+// HYBRID This map type displays a transparent layer of major streets on satellite images.
+// ROADMAP This map type displays a normal street map.
+// SATELLITE This map type displays satellite images.
+// TERRAIN This map type displays maps with physical features such as terrain and vegetation.
+          if (value == "m") {maptype = google.maps.MapTypeId.ROADMAP;}
+          if (value == "k") {maptype = google.maps.MapTypeId.SATELLITE;}
+          if (value == "h") {maptype = google.maps.MapTypeId.HYBRID;}
+          if (value == "t") {maptype = google.maps.MapTypeId.TERRAIN;}
+
+        }
+      }
+  map = new google.maps.Map(document.getElementById('map_canvas'), {
+    center: new google.maps.LatLng(40.65, -73.95), // Brooklyn, NY
+    mapTypeId: google.maps.MapTypeId.ROADMAP,
+    streetViewControl: false
+  });
+  circle.setMap(map);
+  service = new google.maps.places.PlacesService(map);
+  initialService = new google.maps.places.PlacesService(map);
+
+  google.maps.event.addListener(map, "click", function(evt) {
+    startLoc = evt.latLng;
+    circle.setCenter(startLoc);
+    var request = {
+      bounds: circle.getBounds(),
+      query: document.getElementById('target').value
+    };
+    initialService.textSearch(request, callback);
+  });
+
+
+
+  if (noAutoComplete && noQuery) initialService.textSearch(request, callback);
+  var defaultBounds = new google.maps.LatLngBounds(
+    new google.maps.LatLng(40.0, -74.0),
+    new google.maps.LatLng(42.0, -73.0)
+  );
+  if (request && request.bounds) map.fitBounds(request.bounds);
+  else map.fitBounds(defaultBounds);
+
+  if (!noAutoComplete) {
+  var input = document.getElementById('target');
+  var searchBox = new google.maps.places.SearchBox(input);
+  searchBox.setBounds(defaultBounds);
+  var markers = [];
+  service = new google.maps.places.PlacesService(map);
+
+  google.maps.event.addListener(map, 'bounds_changed', function() {
+    var bounds = map.getBounds();
+    searchBox.setBounds(bounds);
+  });
+}
+
+      }
+      google.maps.event.addDomListener(window, 'load', initialize);
+
+function createMarker(place){
+    var placeLoc=place.geometry.location;
+    if (place.icon) {
+      var image = {
+                url:place.icon,
+                // size:new google.maps.Size(71, 71),
+                // origin: new google.maps.Point(0, 0),
+                // anchor:new google.maps.Point(35, 0),
+                scaledSize:new google.maps.Size(25, 25)};
+     } else var image = null;
+
+    var marker=new google.maps.Marker({
+        map:map,
+        icon: image,
+        position:place.geometry.location
+    });
+    var request =  {
+          reference: place.reference
+    };
+    google.maps.event.addListener(marker,'click',function(){
+        infowindow.marker = marker;
+        service.getDetails(request, function(place, status) {
+          if (status == google.maps.places.PlacesServiceStatus.OK) {
+            var contentStr = '<h5>'+place.name+'</h5><p>'+place.formatted_address;
+            if (!!place.formatted_phone_number) contentStr += '<br>'+place.formatted_phone_number;
+            if (!!place.website) contentStr += '<br><a target="_blank" href="'+place.website+'">'+place.website+'</a>';
+            contentStr += '<br>'+place.types+'</p>';
+            infowindow.setContent(contentStr+'<input type="button" value="zoom in" onclick="map.setCenter(infowindow.marker.getPosition());map.setZoom(map.getZoom()+1);"/><input type="button" value="zoom out" onclick="map.fitBounds(circle.getBounds());"/>');
+            infowindow.open(map,marker);
+          } else {
+            var contentStr = "<h5>No Result, status="+status+"</h5>";
+            infowindow.setContent(contentStr);
+            infowindow.open(map,marker);
+          }
+        });
+
+    });
+    gmarkers.push(marker);
+/*
+    if (gmarkers.length==1)
+    {
+      map.setCenter(marker.getPosition());
+      map.setZoom(19);
+      google.maps.event.trigger(marker, "click");
+    }
+*/
+    var side_bar_html = "<a href='javascript:google.maps.event.trigger(gmarkers["+parseInt(gmarkers.length-1)+"],\"click\");'>"+place.name+"</a><br>";
+    document.getElementById('side_bar').innerHTML += side_bar_html;
+}
+
+function codeAddress()
+{
+  var address = document.getElementById('address').value;
+
+  geocoder.geocode({'address' : address}, function(results, status){
+    if (status == google.maps.GeocoderStatus.OK){
+      startLoc = results[0].geometry.location;
+      circle.setCenter(startLoc);
+      var request = {
+        bounds: circle.getBounds(),
+        query: document.getElementById('target').value
+      };
+      initialService.textSearch(request, callback);
+   } else { alert("geocode failed:"+status);
+   }
+  });
+}
+
+    </script><script type="text/javascript" charset="UTF-8" src="https://maps.googleapis.com/maps-api-v3/api/js/28/19/common.js"></script><script type="text/javascript" charset="UTF-8" src="https://maps.googleapis.com/maps-api-v3/api/js/28/19/util.js"></script><script type="text/javascript" charset="UTF-8" src="https://maps.googleapis.com/maps-api-v3/api/js/28/19/geocoder.js"></script><script type="text/javascript" charset="UTF-8" src="https://maps.googleapis.com/maps-api-v3/api/js/28/19/map.js"></script><script type="text/javascript" charset="UTF-8" src="https://maps.googleapis.com/maps-api-v3/api/js/28/19/poly.js"></script>
+    <style>
+      #target {
+        width: 345px;
+      }
+    </style>
+  <script type="text/javascript" charset="UTF-8" src="https://maps.googleapis.com/maps-api-v3/api/js/28/19/infowindow.js"></script><style type="text/css">.gm-style {
+        font: 400 11px Roboto, Arial, sans-serif;
+        text-decoration: none;
+      }
+      .gm-style img { max-width: none; }</style><script type="text/javascript" charset="UTF-8" src="https://maps.googleapis.com/maps-api-v3/api/js/28/19/onion.js"></script><script type="text/javascript" charset="UTF-8" src="https://maps.googleapis.com/maps-api-v3/api/js/28/19/controls.js"></script><script type="text/javascript" charset="UTF-8" src="https://maps.googleapis.com/maps-api-v3/api/js/28/19/places_impl.js"></script><script type="text/javascript" charset="UTF-8" src="https://maps.googleapis.com/maps-api-v3/api/js/28/19/stats.js"></script><script type="text/javascript" charset="UTF-8" src="https://maps.googleapis.com/maps-api-v3/api/js/28/19/marker.js"></script><script type="text/javascript" charset="UTF-8" src="https://maps.googleapis.com/maps-api-v3/api/js/28/19/distance_matrix.js"></script></head>
+  <body>
+<table border="1" style="width:800px; height: 500px;"><tbody><tr><td style="width:80%;height:100%;">
+<label>Search for:</label><input id="target" type="text" placeholder="Charity"><br>
+
+<label>Near:</label><input id="address" value="San Francisco, CA" size="70"><input type="button" onclick="codeAddress();" value="Search">
+    <div id="map_canvas" style="width: 600px; height: 500px; position: relative; overflow: hidden;"><div style="height: 100%; width: 100%; position: absolute; top: 0px; left: 0px; background-color: rgb(229, 227, 223);"><div class="gm-style" style="position: absolute; z-index: 0; left: 0px; top: 0px; height: 100%; width: 100%; padding: 0px; border-width: 0px; margin: 0px;"><div style="position: absolute; z-index: 0; left: 0px; top: 0px; height: 100%; width: 100%; padding: 0px; border-width: 0px; margin: 0px; cursor: url(&quot;https://maps.gstatic.com/mapfiles/openhand_8_8.cur&quot;) 8 8, default;"><div style="z-index: 1; position: absolute; top: 0px; left: 0px; width: 100%; transform-origin: 0px 0px 0px; transform: matrix(1, 0, 0, 1, 0, 0);"><div style="position: absolute; left: 0px; top: 0px; z-index: 100; width: 100%;"><div style="position: absolute; left: 0px; top: 0px; z-index: 0;"><div aria-hidden="true" style="position: absolute; left: 0px; top: 0px; z-index: 1; visibility: inherit;"><div style="width: 256px; height: 256px; position: absolute; left: 41px; top: 94px;"></div><div style="width: 256px; height: 256px; position: absolute; left: 297px; top: 94px;"></div><div style="width: 256px; height: 256px; position: absolute; left: 297px; top: -162px;"></div><div style="width: 256px; height: 256px; position: absolute; left: 41px; top: -162px;"></div><div style="width: 256px; height: 256px; position: absolute; left: 41px; top: 350px;"></div><div style="width: 256px; height: 256px; position: absolute; left: 297px; top: 350px;"></div><div style="width: 256px; height: 256px; position: absolute; left: -215px; top: 94px;"></div><div style="width: 256px; height: 256px; position: absolute; left: 553px; top: 94px;"></div><div style="width: 256px; height: 256px; position: absolute; left: -215px; top: 350px;"></div><div style="width: 256px; height: 256px; position: absolute; left: 553px; top: -162px;"></div><div style="width: 256px; height: 256px; position: absolute; left: -215px; top: -162px;"></div><div style="width: 256px; height: 256px; position: absolute; left: 553px; top: 350px;"></div></div></div></div><div style="position: absolute; left: 0px; top: 0px; z-index: 101; width: 100%;"><div style="position: absolute; left: 0px; top: 0px; z-index: 30;"><div aria-hidden="true" style="position: absolute; left: 0px; top: 0px; z-index: 1; visibility: inherit;"><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 41px; top: 94px;"><canvas width="384" height="384" draggable="false" style="width: 256px; height: 256px; user-select: none; position: absolute; left: 0px; top: 0px;"></canvas></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 297px; top: 94px;"><canvas width="384" height="384" draggable="false" style="width: 256px; height: 256px; user-select: none; position: absolute; left: 0px; top: 0px;"></canvas></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 297px; top: -162px;"></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 41px; top: -162px;"></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 41px; top: 350px;"><canvas width="384" height="384" draggable="false" style="width: 256px; height: 256px; user-select: none; position: absolute; left: 0px; top: 0px;"></canvas></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 297px; top: 350px;"><canvas width="384" height="384" draggable="false" style="width: 256px; height: 256px; user-select: none; position: absolute; left: 0px; top: 0px;"></canvas></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: -215px; top: 94px;"></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 553px; top: 94px;"></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: -215px; top: 350px;"></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 553px; top: -162px;"></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: -215px; top: -162px;"></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 553px; top: 350px;"></div></div></div></div><div style="position: absolute; left: 0px; top: 0px; z-index: 102; width: 100%;"></div><div style="position: absolute; left: 0px; top: 0px; z-index: 103; width: 100%;"><div style="position: absolute; left: 0px; top: 0px; z-index: -1;"><div aria-hidden="true" style="position: absolute; left: 0px; top: 0px; z-index: 1; visibility: inherit;"><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 41px; top: 94px;"><canvas draggable="false" height="384" width="384" style="user-select: none; position: absolute; left: 0px; top: 0px; height: 256px; width: 256px;"></canvas></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 297px; top: 94px;"><canvas draggable="false" height="384" width="384" style="user-select: none; position: absolute; left: 0px; top: 0px; height: 256px; width: 256px;"></canvas></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 297px; top: -162px;"></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 41px; top: -162px;"></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 41px; top: 350px;"><canvas draggable="false" height="384" width="384" style="user-select: none; position: absolute; left: 0px; top: 0px; height: 256px; width: 256px;"></canvas></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 297px; top: 350px;"><canvas draggable="false" height="384" width="384" style="user-select: none; position: absolute; left: 0px; top: 0px; height: 256px; width: 256px;"></canvas></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: -215px; top: 94px;"></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 553px; top: 94px;"></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: -215px; top: 350px;"></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 553px; top: -162px;"></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: -215px; top: -162px;"></div><div style="width: 256px; height: 256px; overflow: hidden; position: absolute; left: 553px; top: 350px;"></div></div></div></div><div style="position: absolute; z-index: 0; left: 0px; top: 0px;"><div style="overflow: hidden; width: 600px; height: 500px;"><img src="https://maps.googleapis.com/maps/api/js/StaticMapService.GetMapImage?1m2&amp;1i41943&amp;2i101282&amp;2e1&amp;3u10&amp;4m2&amp;1u600&amp;2u500&amp;5m5&amp;1e0&amp;5sen-US&amp;6sus&amp;10b1&amp;12b1&amp;token=102508" style="width: 600px; height: 500px;"></div></div><div style="position: absolute; left: 0px; top: 0px; z-index: 0;"><div aria-hidden="true" style="position: absolute; left: 0px; top: 0px; z-index: 1; visibility: inherit;"><div style="position: absolute; left: 41px; top: 94px; transition: opacity 200ms ease-out;"><img src="https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i10!2i164!3i396!4i256!2m3!1e0!2sm!3i387081744!3m9!2sen-US!3sUS!5e18!12m1!1e68!12m3!1e37!2m1!1ssmartmaps!4e0!5m1!5f2&amp;token=91822" draggable="false" alt="" style="width: 256px; height: 256px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none;"></div><div style="position: absolute; left: 297px; top: -162px; transition: opacity 200ms ease-out;"><img src="https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i10!2i165!3i395!4i256!2m3!1e0!2sm!3i387081744!3m9!2sen-US!3sUS!5e18!12m1!1e68!12m3!1e37!2m1!1ssmartmaps!4e0!5m1!5f2&amp;token=51489" draggable="false" alt="" style="width: 256px; height: 256px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none;"></div><div style="position: absolute; left: 297px; top: 94px; transition: opacity 200ms ease-out;"><img src="https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i10!2i165!3i396!4i256!2m3!1e0!2sm!3i387081744!3m9!2sen-US!3sUS!5e18!12m1!1e68!12m3!1e37!2m1!1ssmartmaps!4e0!5m1!5f2&amp;token=11768" draggable="false" alt="" style="width: 256px; height: 256px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none;"></div><div style="position: absolute; left: 41px; top: -162px; transition: opacity 200ms ease-out;"><img src="https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i10!2i164!3i395!4i256!2m3!1e0!2sm!3i387081744!3m9!2sen-US!3sUS!5e18!12m1!1e68!12m3!1e37!2m1!1ssmartmaps!4e0!5m1!5f2&amp;token=472" draggable="false" alt="" style="width: 256px; height: 256px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none;"></div><div style="position: absolute; left: 41px; top: 350px; transition: opacity 200ms ease-out;"><img src="https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i10!2i164!3i397!4i256!2m3!1e0!2sm!3i387081744!3m9!2sen-US!3sUS!5e18!12m1!1e68!12m3!1e37!2m1!1ssmartmaps!4e0!5m1!5f2&amp;token=52101" draggable="false" alt="" style="width: 256px; height: 256px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none;"></div><div style="position: absolute; left: 297px; top: 350px; transition: opacity 200ms ease-out;"><img src="https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i10!2i165!3i397!4i256!2m3!1e0!2sm!3i387081744!3m9!2sen-US!3sUS!5e18!12m1!1e68!12m3!1e37!2m1!1ssmartmaps!4e0!5m1!5f2&amp;token=103118" draggable="false" alt="" style="width: 256px; height: 256px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none;"></div><div style="position: absolute; left: -215px; top: 94px; transition: opacity 200ms ease-out;"><img src="https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i10!2i163!3i396!4i256!2m3!1e0!2sm!3i387081648!3m9!2sen-US!3sUS!5e18!12m1!1e68!12m3!1e37!2m1!1ssmartmaps!4e0!5m1!5f2&amp;token=87591" draggable="false" alt="" style="width: 256px; height: 256px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none;"></div><div style="position: absolute; left: 553px; top: 94px; transition: opacity 200ms ease-out;"><img src="https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i10!2i166!3i396!4i256!2m3!1e0!2sm!3i387081744!3m9!2sen-US!3sUS!5e18!12m1!1e68!12m3!1e37!2m1!1ssmartmaps!4e0!5m1!5f2&amp;token=62785" draggable="false" alt="" style="width: 256px; height: 256px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none;"></div><div style="position: absolute; left: -215px; top: 350px; transition: opacity 200ms ease-out;"><img src="https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i10!2i163!3i397!4i256!2m3!1e0!2sm!3i387081648!3m9!2sen-US!3sUS!5e18!12m1!1e68!12m3!1e37!2m1!1ssmartmaps!4e0!5m1!5f2&amp;token=47870" draggable="false" alt="" style="width: 256px; height: 256px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none;"></div><div style="position: absolute; left: 553px; top: -162px; transition: opacity 200ms ease-out;"><img src="https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i10!2i166!3i395!4i256!2m3!1e0!2sm!3i387081744!3m9!2sen-US!3sUS!5e18!12m1!1e68!12m3!1e37!2m1!1ssmartmaps!4e0!5m1!5f2&amp;token=102506" draggable="false" alt="" style="width: 256px; height: 256px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none;"></div><div style="position: absolute; left: -215px; top: -162px; transition: opacity 200ms ease-out;"><img src="https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i10!2i163!3i395!4i256!2m3!1e0!2sm!3i387081648!3m9!2sen-US!3sUS!5e18!12m1!1e68!12m3!1e37!2m1!1ssmartmaps!4e0!5m1!5f2&amp;token=127312" draggable="false" alt="" style="width: 256px; height: 256px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none;"></div><div style="position: absolute; left: 553px; top: 350px; transition: opacity 200ms ease-out;"><img src="https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i10!2i166!3i397!4i256!2m3!1e0!2sm!3i387081744!3m9!2sen-US!3sUS!5e18!12m1!1e68!12m3!1e37!2m1!1ssmartmaps!4e0!5m1!5f2&amp;token=23064" draggable="false" alt="" style="width: 256px; height: 256px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none;"></div></div></div></div><div style="z-index: 2; position: absolute; height: 100%; width: 100%; padding: 0px; border-width: 0px; margin: 0px; left: 0px; top: 0px;"></div><div style="z-index: 3; position: absolute; height: 100%; width: 100%; padding: 0px; border-width: 0px; margin: 0px; left: 0px; top: 0px;"><div style="z-index: 1; position: absolute; height: 100%; width: 100%; padding: 0px; border-width: 0px; margin: 0px; left: 0px; top: 0px;"></div></div><div style="z-index: 4; position: absolute; top: 0px; left: 0px; width: 100%; transform-origin: 0px 0px 0px; transform: matrix(1, 0, 0, 1, 0, 0);"><div style="position: absolute; left: 0px; top: 0px; z-index: 104; width: 100%;"></div><div style="position: absolute; left: 0px; top: 0px; z-index: 105; width: 100%;"></div><div style="position: absolute; left: 0px; top: 0px; z-index: 106; width: 100%;"></div><div style="position: absolute; left: 0px; top: 0px; z-index: 107; width: 100%;"><div style="z-index: -202; cursor: pointer; display: none;"><div style="width: 30px; height: 27px; overflow: hidden; position: absolute;"><img src="https://maps.gstatic.com/mapfiles/undo_poly.png" draggable="false" style="position: absolute; left: 0px; top: 0px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none; width: 90px; height: 27px;"></div></div></div></div><iframe frameborder="0" style="z-index: -1; border: 0px none; position: absolute; height: 100%; width: 100%; padding: 0px; margin: 0px; left: 0px; top: 0px;"></iframe></div><div style="margin-left: 5px; margin-right: 5px; z-index: 1000000; position: absolute; left: 0px; bottom: 0px;"><a target="_blank" href="https://maps.google.com/maps?ll=37.54841,-121.988572&amp;z=10&amp;t=m&amp;hl=en-US&amp;gl=US&amp;mapclient=apiv3" title="Click to see this area on Google Maps" style="position: static; overflow: visible; float: none; display: inline;"><div style="width: 66px; height: 26px; cursor: pointer;"><img src="https://maps.gstatic.com/mapfiles/api-3/images/google4_hdpi.png" draggable="false" style="position: absolute; left: 0px; top: 0px; width: 66px; height: 26px; user-select: none; border: 0px; padding: 0px; margin: 0px;"></div></a></div><div style="background-color: white; padding: 15px 21px; border: 1px solid rgb(171, 171, 171); font-family: Roboto, Arial, sans-serif; color: rgb(34, 34, 34); box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 16px; z-index: 10000002; display: none; width: 256px; height: 148px; position: absolute; left: 150px; top: 160px;"><div style="padding: 0px 0px 10px; font-size: 16px;">Map Data</div><div style="font-size: 13px;">Map data ©2017 Google</div><div style="width: 13px; height: 13px; overflow: hidden; position: absolute; opacity: 0.7; right: 12px; top: 12px; z-index: 10000; cursor: pointer;"><img src="https://maps.gstatic.com/mapfiles/api-3/images/mapcnt6.png" draggable="false" style="position: absolute; left: -2px; top: -336px; width: 59px; height: 492px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none;"></div></div><div class="gmnoprint" style="z-index: 1000001; position: absolute; right: 166px; bottom: 0px; width: 121px;"><div draggable="false" class="gm-style-cc" style="user-select: none; height: 14px; line-height: 14px;"><div style="opacity: 0.7; width: 100%; height: 100%; position: absolute;"><div style="width: 1px;"></div><div style="background-color: rgb(245, 245, 245); width: auto; height: 100%; margin-left: 1px;"></div></div><div style="position: relative; padding-right: 6px; padding-left: 6px; font-family: Roboto, Arial, sans-serif; font-size: 10px; color: rgb(68, 68, 68); white-space: nowrap; direction: ltr; text-align: right; vertical-align: middle; display: inline-block;"><a style="color: rgb(68, 68, 68); text-decoration: none; cursor: pointer; display: none;">Map Data</a><span style="">Map data ©2017 Google</span></div></div></div><div class="gmnoscreen" style="position: absolute; right: 0px; bottom: 0px;"><div style="font-family: Roboto, Arial, sans-serif; font-size: 11px; color: rgb(68, 68, 68); direction: ltr; text-align: right; background-color: rgb(245, 245, 245);">Map data ©2017 Google</div></div><div class="gmnoprint gm-style-cc" draggable="false" style="z-index: 1000001; user-select: none; height: 14px; line-height: 14px; position: absolute; right: 95px; bottom: 0px;"><div style="opacity: 0.7; width: 100%; height: 100%; position: absolute;"><div style="width: 1px;"></div><div style="background-color: rgb(245, 245, 245); width: auto; height: 100%; margin-left: 1px;"></div></div><div style="position: relative; padding-right: 6px; padding-left: 6px; font-family: Roboto, Arial, sans-serif; font-size: 10px; color: rgb(68, 68, 68); white-space: nowrap; direction: ltr; text-align: right; vertical-align: middle; display: inline-block;"><a href="https://www.google.com/intl/en-US_US/help/terms_maps.html" target="_blank" style="text-decoration: none; cursor: pointer; color: rgb(68, 68, 68);">Terms of Use</a></div></div><div style="cursor: pointer; width: 25px; height: 25px; overflow: hidden; display: none; margin: 10px 14px; position: absolute; top: 0px; right: 0px;"><img src="https://maps.gstatic.com/mapfiles/api-3/images/sv9.png" draggable="false" class="gm-fullscreen-control" style="position: absolute; left: -52px; top: -86px; width: 164px; height: 175px; user-select: none; border: 0px; padding: 0px; margin: 0px;"></div><div draggable="false" class="gm-style-cc" style="user-select: none; height: 14px; line-height: 14px; position: absolute; right: 0px; bottom: 0px;"><div style="opacity: 0.7; width: 100%; height: 100%; position: absolute;"><div style="width: 1px;"></div><div style="background-color: rgb(245, 245, 245); width: auto; height: 100%; margin-left: 1px;"></div></div><div style="position: relative; padding-right: 6px; padding-left: 6px; font-family: Roboto, Arial, sans-serif; font-size: 10px; color: rgb(68, 68, 68); white-space: nowrap; direction: ltr; text-align: right; vertical-align: middle; display: inline-block;"><a target="_new" title="Report errors in the road map or imagery to Google" href="https://www.google.com/maps/@37.5484099,-121.9885719,10z/data=!10m1!1e1!12b1?source=apiv3&amp;rapsrc=apiv3" style="font-family: Roboto, Arial, sans-serif; font-size: 10px; color: rgb(68, 68, 68); text-decoration: none; position: relative;">Report a map error</a></div></div><div draggable="false" class="gm-style-cc" style="user-select: none; height: 14px; line-height: 14px; z-index: 0; position: absolute; bottom: 89px; right: 0px;"><div style="opacity: 0.7; width: 100%; height: 100%; position: absolute;"><div style="width: 1px;"></div><div style="background-color: rgb(245, 245, 245); width: auto; height: 100%; margin-left: 1px;"></div></div><div style="position: relative; padding-right: 6px; padding-left: 6px; font-family: Roboto, Arial, sans-serif; font-size: 10px; color: rgb(68, 68, 68); white-space: nowrap; direction: ltr; text-align: right; vertical-align: middle; display: inline-block; padding-bottom: 0px;"></div></div><div draggable="false" class="gm-style-cc" style="user-select: none; height: 14px; line-height: 14px; z-index: 0; position: absolute; bottom: 103px; right: 0px;"><div style="opacity: 0.7; width: 100%; height: 100%; position: absolute;"><div style="width: 1px;"></div><div style="background-color: rgb(245, 245, 245); width: auto; height: 100%; margin-left: 1px;"></div></div><div style="position: relative; padding-right: 6px; padding-left: 6px; font-family: Roboto, Arial, sans-serif; font-size: 10px; color: rgb(68, 68, 68); white-space: nowrap; direction: ltr; text-align: right; vertical-align: middle; display: inline-block; padding-bottom: 0px;"></div></div><div class="gmnoprint gm-bundled-control gm-bundled-control-on-bottom" draggable="false" controlwidth="28" controlheight="55" style="margin: 10px; user-select: none; position: absolute; bottom: 69px; right: 28px;"><div class="gmnoprint" controlwidth="28" controlheight="55" style="position: absolute; left: 0px; top: 0px;"><div draggable="false" style="user-select: none; box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px -1px; border-radius: 2px; cursor: pointer; background-color: rgb(255, 255, 255); width: 28px; height: 55px;"><div title="Zoom in" style="position: relative; width: 28px; height: 27px; left: 0px; top: 0px;"><div style="overflow: hidden; position: absolute; width: 15px; height: 15px; left: 7px; top: 6px;"><img src="https://maps.gstatic.com/mapfiles/api-3/images/tmapctrl_hdpi.png" draggable="false" style="position: absolute; left: 0px; top: 0px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none; width: 120px; height: 54px;"></div></div><div style="position: relative; overflow: hidden; width: 67%; height: 1px; left: 16%; background-color: rgb(230, 230, 230); top: 0px;"></div><div title="Zoom out" style="position: relative; width: 28px; height: 27px; left: 0px; top: 0px;"><div style="overflow: hidden; position: absolute; width: 15px; height: 15px; left: 7px; top: 6px;"><img src="https://maps.gstatic.com/mapfiles/api-3/images/tmapctrl_hdpi.png" draggable="false" style="position: absolute; left: 0px; top: -15px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none; width: 120px; height: 54px;"></div></div></div></div><div class="gmnoprint" controlwidth="28" controlheight="0" style="display: none; position: absolute;"><div title="Rotate map 90 degrees" style="width: 28px; height: 28px; overflow: hidden; position: absolute; border-radius: 2px; box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px -1px; cursor: pointer; background-color: rgb(255, 255, 255); display: none;"><img src="https://maps.gstatic.com/mapfiles/api-3/images/tmapctrl4_hdpi.png" draggable="false" style="position: absolute; left: -141px; top: 6px; width: 170px; height: 54px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none;"></div><div class="gm-tilt" style="width: 28px; height: 28px; overflow: hidden; position: absolute; border-radius: 2px; box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px -1px; top: 0px; cursor: pointer; background-color: rgb(255, 255, 255);"><img src="https://maps.gstatic.com/mapfiles/api-3/images/tmapctrl4_hdpi.png" draggable="false" style="position: absolute; left: -141px; top: -13px; width: 170px; height: 54px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none;"></div></div></div><div class="gmnoprint" style="margin: 10px; z-index: 0; position: absolute; cursor: pointer; left: 0px; top: 0px;"><div class="gm-style-mtc" style="float: left;"><div draggable="false" title="Show street map" style="direction: ltr; overflow: hidden; text-align: center; position: relative; color: rgb(0, 0, 0); font-family: Roboto, Arial, sans-serif; user-select: none; font-size: 11px; background-color: rgb(255, 255, 255); padding: 8px; border-bottom-left-radius: 2px; border-top-left-radius: 2px; -webkit-background-clip: padding-box; background-clip: padding-box; box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px -1px; min-width: 21px; font-weight: 500;">Map</div><div style="background-color: white; z-index: -1; padding: 2px; border-bottom-left-radius: 2px; border-bottom-right-radius: 2px; box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px -1px; position: absolute; left: 0px; top: 29px; text-align: left; display: none;"><div draggable="false" title="Show street map with terrain" style="color: rgb(0, 0, 0); font-family: Roboto, Arial, sans-serif; user-select: none; font-size: 11px; background-color: rgb(255, 255, 255); padding: 6px 8px 6px 6px; direction: ltr; text-align: left; white-space: nowrap;"><span role="checkbox" style="box-sizing: border-box; position: relative; line-height: 0; font-size: 0px; margin: 0px 5px 0px 0px; display: inline-block; background-color: rgb(255, 255, 255); border: 1px solid rgb(198, 198, 198); border-radius: 1px; width: 13px; height: 13px; vertical-align: middle;"><div style="position: absolute; left: 1px; top: -2px; width: 13px; height: 11px; overflow: hidden; display: none;"><img src="https://maps.gstatic.com/mapfiles/mv/imgs8.png" draggable="false" style="position: absolute; left: -52px; top: -44px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none; width: 68px; height: 67px;"></div></span><label style="vertical-align: middle; cursor: pointer;">Terrain</label></div></div></div><div class="gm-style-mtc" style="float: left;"><div draggable="false" title="Show satellite imagery" style="direction: ltr; overflow: hidden; text-align: center; position: relative; color: rgb(86, 86, 86); font-family: Roboto, Arial, sans-serif; user-select: none; font-size: 11px; background-color: rgb(255, 255, 255); padding: 8px; border-bottom-right-radius: 2px; border-top-right-radius: 2px; -webkit-background-clip: padding-box; background-clip: padding-box; box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px -1px; border-left: 0px; min-width: 39px;">Satellite</div><div style="background-color: white; z-index: -1; padding: 2px; border-bottom-left-radius: 2px; border-bottom-right-radius: 2px; box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px -1px; position: absolute; right: 0px; top: 29px; text-align: left; display: none;"><div draggable="false" title="Show imagery with street names" style="color: rgb(0, 0, 0); font-family: Roboto, Arial, sans-serif; user-select: none; font-size: 11px; background-color: rgb(255, 255, 255); padding: 6px 8px 6px 6px; direction: ltr; text-align: left; white-space: nowrap;"><span role="checkbox" style="box-sizing: border-box; position: relative; line-height: 0; font-size: 0px; margin: 0px 5px 0px 0px; display: inline-block; background-color: rgb(255, 255, 255); border: 1px solid rgb(198, 198, 198); border-radius: 1px; width: 13px; height: 13px; vertical-align: middle;"><div style="position: absolute; left: 1px; top: -2px; width: 13px; height: 11px; overflow: hidden;"><img src="https://maps.gstatic.com/mapfiles/mv/imgs8.png" draggable="false" style="position: absolute; left: -52px; top: -44px; user-select: none; border: 0px; padding: 0px; margin: 0px; max-width: none; width: 68px; height: 67px;"></div></span><label style="vertical-align: middle; cursor: pointer;">Labels</label></div></div></div></div></div></div></div>
+</td><td style="width:300px;height:500px">
+    <div id="side_bar"><h5>found 20 places</h5><a href='javascript:google.maps.event.trigger(gmarkers[0],"click");'>Able Auto Charity Donation Corporation</a><br><a href='javascript:google.maps.event.trigger(gmarkers[1],"click");'>Indian Muslim Relief &amp; Charities</a><br><a href='javascript:google.maps.event.trigger(gmarkers[2],"click");'>Given Tree</a><br><a href='javascript:google.maps.event.trigger(gmarkers[3],"click");'>Bicycle Exchange</a><br><a href='javascript:google.maps.event.trigger(gmarkers[4],"click");'>CARH</a><br><a href='javascript:google.maps.event.trigger(gmarkers[5],"click");'>Catholic Charities</a><br><a href='javascript:google.maps.event.trigger(gmarkers[6],"click");'>Buddhist Tzu Chi Medical Foundation</a><br><a href='javascript:google.maps.event.trigger(gmarkers[7],"click");'>Goodwill of Silicon Valley</a><br><a href='javascript:google.maps.event.trigger(gmarkers[8],"click");'>Goodwill of Silicon Valley</a><br><a href='javascript:google.maps.event.trigger(gmarkers[9],"click");'>The Salvation Army</a><br><a href='javascript:google.maps.event.trigger(gmarkers[10],"click");'>Family Giving Tree</a><br><a href='javascript:google.maps.event.trigger(gmarkers[11],"click");'>Viet Dreams Charity</a><br><a href='javascript:google.maps.event.trigger(gmarkers[12],"click");'>Dress for Success San Jose</a><br><a href='javascript:google.maps.event.trigger(gmarkers[13],"click");'>Charity Cars For Kids</a><br><a href='javascript:google.maps.event.trigger(gmarkers[14],"click");'>Catholic Charities</a><br><a href='javascript:google.maps.event.trigger(gmarkers[15],"click");'>Bay Area Kids Charity</a><br><a href='javascript:google.maps.event.trigger(gmarkers[16],"click");'>99 Pledges</a><br><a href='javascript:google.maps.event.trigger(gmarkers[17],"click");'>The Salvation Army Hayward Corps</a><br><a href='javascript:google.maps.event.trigger(gmarkers[18],"click");'>Goodwill</a><br><a href='javascript:google.maps.event.trigger(gmarkers[19],"click");'>Cystic Fibrosis Research Inc</a><br></div>
+</td></tr></tbody></table>
+<div id="info">found 8 places within 10 miles<br>found 2 within 10 minute drive<br><table border="1"><tbody><tr><td>4046 Mowry Ave, Fremont, CA 94538, USA</td><td><a href='javascript:google.maps.event.trigger(destMarkers[0],"click");'>40891 Robin St, Fremont, CA 94538, USA</a></td><td>2.6 mi</td><td>7 mins</td></tr><tr><td>4046 Mowry Ave, Fremont, CA 94538, USA</td><td><a href='javascript:google.maps.event.trigger(destMarkers[6],"click");'>4025 Mowry Ave, Fremont, CA 94538, USA</a></td><td>361 ft</td><td>1 min</td></tr></tbody></table>found 2 within 10 minute drive<br><table border="1"><tbody><tr><td>4046 Mowry Ave, Fremont, CA 94538, USA</td><td><a href='javascript:google.maps.event.trigger(destMarkers[0],"click");'>40891 Robin St, Fremont, CA 94538, USA</a></td><td>2.6 mi</td><td>7 mins</td></tr><tr><td>4046 Mowry Ave, Fremont, CA 94538, USA</td><td><a href='javascript:google.maps.event.trigger(destMarkers[6],"click");'>4025 Mowry Ave, Fremont, CA 94538, USA</a></td><td>361 ft</td><td>1 min</td></tr></tbody></table></div>
+<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+</script>
+<script type="text/javascript">
+_uacct = "UA-162157-1";
+urchinTracker();
+</script>
+
+
+</body></html>
