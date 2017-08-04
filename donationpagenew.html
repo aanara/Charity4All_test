@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	  <link href="css/bootstrap.min.css" rel="stylesheet">
+	  <link href='https://fonts.googleapis.com/css?family=Amatic SC' rel='stylesheet'>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<link rel="icon" href="Globe_Icon.png">
+  </head>
+<!--SEARCH BAR-->
+
+
+  <style>
+  body{
+    font-family: 'Amatic SC';
+  }
+  .glyphicon {
+    font-size: 45px;
+  }
+
+ .navbar {
+  font-family: 'Amatic SC';
+  font-size: 22px;
+  margin-bottom: 0;
+  border-radius: 0;
+  color: #FFFFFF;
+  background-color: #092F55  ;
+}
+  </style>
+
+  </head>
+<!--TITLE-->
+  <title>DONATE NOW!</title>
+<!--NAV BAR-->
+  <body>
+ <nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#"><font color="white">Charity4All</font></a>
+    </div>
+    <div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav">
+        <li><a href="Home.html"><font color="white">Home</font></a></li>
+        <li><a href="aboutus.html"><font color="white">About Us</font></a></li>
+        <li><a href="problemsc4l.html"><font color="white">The Problem</font></a></li>
+        <li class="active"><a href="#"><font color="white">Donate Now!</font></a></li>
+            <li><a href="blank.html"><font color="white">FAQs</font></a></li>
+        <li><a href="blank.html"><font color="white">Stories</font></a></li>
+
+        		<li><form action="https://www.google.com" method="get" id="search-box" align="right">
+        			<input type="text" class="search" name="q" size="15" maxlength="120" placeholder="search...">
+        			<input type="submit" class="button" value="go">
+        		</form></li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+      <br>
+  <!--STEP #1-->
+  <div class="container">
+    <div class="panel panel-default">
+      <div class="panel-body"><font size = "25">Step 1: Location</font></div>
+    </div>
+    <b> <font size = "20">Would you like us to detect your current location? </font></b>
+    <span class="glyphicon glyphicon-ok-circle" role="button" aria-hidden="true"></span>
+    <form>
+      <font size = "20">Else, please enter the zipcode here:</font>
+      <input maxlength="5" type="text" name="zipcode" onkeypress="validate(event)"><br>
+      <input type="submit" value="Submit" >
+      <input type="reset">
+    </form>
+  <!--IMAGES-->
+    <img src="http://www.islands.com/sites/islands.com/files/styles/large_1x_/public/images/2016/02/poipu_beach_kauai.jpg" alt="Beach" style="width:30%;"align="right"; color: white;>
+  </div>
+<!--STEP #2-->
+  <div class = "container">
+    <div class = "panel panel-default">
+      <div class = "panel-body"><font size = "25">Step 2: Distance</font></div>
+    </div>
+    <b> <font size = "20"> How far are you willing to travel? </font></b>
+    <input type="range" min="0" max="50" value="0" step="5" onchange="showValue(this.value)" />
+    <span id="range">0</span>
+  </div>
+  <div class = "container">
+    <div class = "panel panel-default">
+    <!--STEP #3-->
+        <div class = "panel-body"> <font size = "25" >Step 3: Select Your Item Below </font></div>
+    </div>
+    <div class="btn-group">
+      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Select <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu">
+        <li><a href="#">clothes</a></li>
+        <li><a href="#">toys</a></li>
+        <li><a href="#">menstruation products</a></li>
+        <li role="separator" class="divider"></li>
+        <li><a href="#">other</a></li>
+      </ul>
+    </div>
+  </div>
+
+<!--DROPDOWN MENU-->
+    <div class = "container">
+      <div class = "panel panel-default">
+        <div class = "panel-body"><font size = "25"> Step 4: What Group Are You Targetting? </div>
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Select <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="#">women</a></li>
+          <li><a href="#">children</a></li>
+          <li><a href="#">men</a></li>
+          <li role="separator" class="divider"></li>
+          <li><a href="#">other</a></li>
+        </ul>
+      </div>
+
+<!--JAVASCRIPT STARTS HERE-->
+
+<script>
+// ZIP CODE-#S ONLY
+function validate(evt) {
+  var theEvent = evt || window.event;
+  var key = theEvent.keyCode || theEvent.which;
+  key = String.fromCharCode( key );
+  var regex = /[0-9]|\./;
+  if( !regex.test(key) ) {
+    theEvent.returnValue = false;
+    if(theEvent.preventDefault) theEvent.preventDefault();
+  }
+}
+</script>
+
+</body>
+</html>
