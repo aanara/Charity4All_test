@@ -58,6 +58,20 @@
         infoWindow.open(map);
       }
     </script>
+    
+    <script>
+    // ZIP CODE-#S ONLY
+    function validate(evt) {
+      var theEvent = evt || window.event;
+      var key = theEvent.keyCode || theEvent.which;
+      key = String.fromCharCode( key );
+      var regex = /[0-9]|\./;
+      if( !regex.test(key) ) {
+        theEvent.returnValue = false;
+        if(theEvent.preventDefault) theEvent.preventDefault();
+      }
+    }
+    </script>
 
   <!--CSS-->
   <style>
@@ -65,6 +79,11 @@
       {
         height: 600px;
         width: 600px;
+      }
+      
+      #search-box 
+      {
+        float: right;
       }
 
       html, body
@@ -132,6 +151,10 @@
             <li class="active"><a href="c4adonate.html"><font color="white">Donate Now!</font></a></li>
             <li><a href="blank.html"><font color="white">Stories</font></a></li>
           </ul>
+            <form action="https://www.google.com" method="get" id="search-box" align="right" ><font color = "black">
+            <input type="text" class="search" name="q" size="15" maxlength="120" placeholder="search..."></font>
+            <input type="submit" class="button" value="go">
+          </form>
         </div>
       </div>
     </nav>
