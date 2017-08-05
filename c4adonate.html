@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html>
   <head>
@@ -60,7 +58,7 @@
         infoWindow.open(map);
       }
     </script>
-    
+
   <!--CSS-->
   <style>
       #map
@@ -77,6 +75,7 @@
         font-family: 'Amatic SC';
       }
 
+
       .glyphicon
       {
         font-size: 45px;
@@ -91,6 +90,22 @@
         color: #FFFFFF;
         background-color: #092F55;
       }
+      .panel-step1 {
+        background-color: #092F55;
+      }
+
+      .panel-step2{
+        background-color: #004d4d;
+      }
+
+      .panel-step3{
+        background-color: #009973;
+      }
+
+      .panel-step4{
+        background-color: #33cc33;
+      }
+
     </style>
   </head>
 
@@ -125,8 +140,8 @@
     <br>
 
     <div class="container">
-      <div class="panel panel-default">
-        <div class="panel-body"><font size = "25">Step 1: Location</font></div>
+      <div class="panel panel-step1">
+        <div class="panel-body"><font size = "25", color = "white">Step 1: Location</font></div>
       </div>
 
       <b><font size = "20">Would you like us to detect your current location? </font></b>
@@ -142,8 +157,8 @@
       <div id="map"></div>
 
     <div class = "container">
-      <div class = "panel panel-default">
-        <div class = "panel-body"><font size = "25">Step 2: Distance</font></div>
+      <div class = "panel panel-step2">
+        <div class = "panel-body"><font size = "25", color = "white">Step 2: Distance</font></div>
       </div>
 
       <b> <font size = "20"> How far are you willing to travel? </font></b>
@@ -155,42 +170,41 @@
 
     </div>
     <div class = "container">
-      <div class = "panel panel-default">
-          <div class = "panel-body"> <font size = "25" >Step 3: Select Your Item Below </font></div>
-
+      <div class = "panel panel-step3">
+          <div class = "panel-body"> <font size = "25", color = "white" >Step 3: Select Your Item Below </font></div>
       </div>
 
       <!-- Single button -->
       <div class="btn-group">
         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Select <span class="caret"></span>
+        <font size = "20">  Select </font><span class="caret"></span>
         </button>
         <ul class="dropdown-menu">
-          <li><a href="#">clothes</a></li>
-          <li><a href="#">toys</a></li>
-          <li><a href="#">menstruation products</a></li>
+          <li><a href="#"><font size = "18">clothes</font></a></li>
+          <li><a href="#"><font size = "18">toys</font></a></li>
+          <li><a href="#"><font size = "18">menstruation products</font></a></li>
           <li role="separator" class="divider"></li>
-          <li><a href="#">other</a></li>
+          <li><a href="#"><font size = "18">other</font></a></li>
         </ul>
       </div>
     </div>
 
 
       <div class = "container">
-        <div class = "panel panel-default">
-          <div class = "panel-body"> Step 4: What Group Are You Targetting? </div>
+        <div class = "panel panel-step4">
+          <div class = "panel-body"><font size = "25", color= "white"> Step 4: What Group Are You Targetting?</font> </div>
         </div>
         <div class="btn-group">
           <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Select <span class="caret"></span>
+          <font size = "20">  Select </font><span class="caret"></span>
           </button>
           <ul class="dropdown-menu">
-            <li><a href="#">women</a></li>
-            <li><a href="#">children</a></li>
-            <li><a href="#">men</a></li>
-            <li><a href="#">homeless people</a></li>
+            <li><a href="#"><font size = "18">women</font></a></li>
+            <li><a href="#"><font size = "18">children</font></a></li>
+            <li><a href="#"><font size = "18">men</font></a></li>
+            <li><a href="#"><font size = "18">homeless people</font></a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="#">other</a></li>
+            <li><a href="#"><font size = "18">other</font></a></li>
           </ul>
         </div>
 
@@ -204,47 +218,6 @@
       70%
     </div>
   </div>
-  <!--<script>
-      // Note: This example requires that you consent to location sharing when
-      // prompted by your browser. If you see the error "The Geolocation service
-      // failed.", it means you probably did not give permission for the browser to
-      // locate you.
-      var map, infoWindow;
-      function initMap() {
-        map = new google.maps.Map(document.getElementById('map'), {
-          center: {lat: -34.397, lng: 150.644},
-          zoom: 6
-        });
-        infoWindow = new google.maps.InfoWindow;
-        // Try HTML5 geolocation.
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(function(position) {
-            var pos = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            };
-            infoWindow.setPosition(pos);
-            infoWindow.setContent('Location found.');
-            infoWindow.open(map);
-            map.setCenter(pos);
-          }, function() {
-            handleLocationError(true, infoWindow, map.getCenter());
-          });
-        } else {
-          // Browser doesn't support Geolocation
-          handleLocationError(false, infoWindow, map.getCenter());
-        }
-      }
-      function handleLocationError(browserHasGeolocation, infoWindow, pos) {
-        infoWindow.setPosition(pos);
-        infoWindow.setContent(browserHasGeolocation ?
-                              'Error: The Geolocation service failed.' :
-                              'Error: Your browser doesn\'t support geolocation.');
-        infoWindow.open(map);
-      }
-    </script>
-  <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDYhU5cddBDOJNUCzQq89pl7zoADqZ6-zA&callback=initMap">
-    </script>-->
+
   </body>
 </html>
